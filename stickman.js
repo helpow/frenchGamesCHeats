@@ -1,98 +1,71 @@
 /**
- * stickman.js (Restored Standard Version)
- * A clean runtime hook library for extracting and injecting custom words 
- * into the minified HTML5 Vanilla DOM Hangman engine.
+ * stickman.js (Universal God-Mode Edition)
+ * A fully reactive runtime injector that catches any game word list 
+ * by sniffing string array mutations directly in memory.
  */
-class StickmanHackerLibrary {
+class GodModeStickmanHacker {
     constructor() {
         this._customWord = null;
-        this._lastInterceptedWord = "None detected yet. Start a round!";
-        this._dictionaryPool = ['un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix'];
+        this._lastInterceptedWord = "None detected yet. Click 'Again' / start a round!";
+        this._blacklist = ['style', 'div', 'span', 'svg', 'path', 'g', 'letterCell', 'keyButton', 'moving', 'skyGrad'];
         this._initializePatcher();
     }
 
-    /**
-     * Internal patcher that hooks directly into the browser's native array construction pipeline
-     * to intercept or override variables right before the minifier obfuscates them.
-     */
     _initializePatcher() {
         const self = this;
         const originalArrayFrom = Array.from;
 
         Array.from = function(target) {
-            if (typeof target === 'string' && self._dictionaryPool.includes(target.toLowerCase())) {
-                self._lastInterceptedWord = target.toUpperCase();
+            // Check if the input is a legitimate string, not an empty space, and not an HTML keyword
+            if (typeof target === 'string' && target.trim().length > 0 && !self._blacklist.includes(target.toLowerCase())) {
                 
-                // If a user has injected a custom word override via stickman.words.changeWord()
-                if (self._customWord) {
-                    const activeOverride = self._customWord.toUpperCase();
-                    console.log(`%c[stickman.js] 🔄 HIJACKING TEXT: Swapping "${target.toUpperCase()}" ➡️ "${activeOverride}"`, "color: #00ffff; font-weight: bold; background: #222; padding: 3px;");
-                    return originalArrayFrom.call(this, activeOverride);
-                }
+                // Exclude raw numerical counts or layout coordinates
+                if (isNaN(target)) {
+                    self._lastInterceptedWord = target.toUpperCase();
 
-                console.log(`%c[stickman.js] 🔑 WORD SPY: Intercepted "${self._lastInterceptedWord}"`, "color: #00ff00; font-weight: bold; background: #222; padding: 3px;");
+                    // If you actively want to swap out the word/topic with a custom cheat phrase
+                    if (self._customWord) {
+                        const activeOverride = self._customWord.toUpperCase();
+                        console.log(`%c[stickman.js] ⚡ HIJACKED PACK: "${target.toUpperCase()}" ➡️ "${activeOverride}"`, "color: #00ffff; font-weight: bold; background: #000; padding: 4px;");
+                        return originalArrayFrom.call(this, activeOverride);
+                    }
+
+                    console.log(`%c[stickman.js] 🔓 SECRET WORD UNLOCKED: "${self._lastInterceptedWord}"`, "color: #00ff00; font-weight: bold; font-size: 14px; background: #111; padding: 4px; border-left: 4px solid #00ff00;");
+                }
             }
             return originalArrayFrom.apply(this, arguments);
         };
 
-        console.log("%c[stickman.js] Standard library restored and monitoring pipelines successfully.", "color: #ff00ff; font-weight: bold;");
+        console.log("%c[stickman.js] All-Topics God-Mode Engine fully listening to string allocations.", "color: #ff00ff; font-weight: bold;");
     }
 
-    /**
-     * Nested class wrapper management handling the word pipeline configuration updates.
-     */
     get words() {
         const self = this;
         return {
-            /**
-             * Sets a new custom target text string that forces the game layout to conform 
-             * to your specific word input on the next round.
-             * @param {string} newWord - The replacement text payload.
-             */
             changeWord(newWord) {
                 if (!newWord || typeof newWord !== 'string') {
-                    console.error("[stickman.js] Error: Input must be a valid text string.");
+                    console.error("[stickman.js] Input must be a valid text string.");
                     return;
                 }
-                
-                // Clean the input string: Remove spaces and punctuation to keep the engine from lagging
-                const sanitizedWord = newWord.replace(/[\s’'()\-:;.,]/g, '').toUpperCase();
-                
-                self._customWord = sanitizedWord;
-                console.log(`%c[stickman.js] Word locked to: "${self._customWord}".`, "color: #ffaa00; font-weight: bold;");
+                // Condense the input string to match normal game parameters
+                self._customWord = newWord.replace(/[\s’'()\-:;.,]/g, '').toUpperCase();
+                console.log(`%c[stickman.js] Locked override payload: "${self._customWord}"`, "color: #ffaa00; font-weight: bold;");
 
-                // Clear out the "Round Over/End Game" overlay graphic if it's currently showing
                 const endScreen = document.querySelector("#endScr");
-                if (endScreen) {
-                    endScreen.style.display = "none";
-                }
+                if (endScreen) endScreen.style.display = "none";
 
-                // Force the game engine to trigger its reset function instantly
                 if (typeof window.startGameAgain === 'function') {
                     window.startGameAgain();
-                    console.log("%c[stickman.js] ⚡ Game board reset forced instantly!", "color: #00ff00; font-weight: bold;");
-                } else {
-                    console.warn("[stickman.js] Could not find window.startGameAgain. Please click 'Again' manually once.");
                 }
             },
 
-            /**
-             * Fetches the true text values currently being computed or played by the engine.
-             * @returns {string} The active string value.
-             */
             getWord() {
-                if (self._customWord) {
-                    return `OVERRIDE ACTIVE: "${self._customWord}" (Game originally intended: "${self._lastInterceptedWord}")`;
-                }
-                return self._lastInterceptedWord;
+                return self._customWord ? `OVERRIDE: "${self._customWord}" (Intended game phrase: "${self._lastInterceptedWord}")` : self._lastInterceptedWord;
             },
 
-            /**
-             * Resets the game tracking state to let the engine pick natively from its standard list again.
-             */
             clearOverride() {
                 self._customWord = null;
-                console.log("[stickman.js] Custom text override cleared. Normal gameplay selection restored.");
+                console.log("[stickman.js] Custom inputs cleared. Standard gameplay selection restored.");
                 if (typeof window.startGameAgain === 'function') {
                     window.startGameAgain();
                 }
@@ -101,5 +74,5 @@ class StickmanHackerLibrary {
     }
 }
 
-// Instantiate the global runtime wrapper accessor interface
-window.stickman = new StickmanHackerLibrary();
+// Instantiate the proxy handler interface globally
+window.stickman = new GodModeStickmanHacker();
