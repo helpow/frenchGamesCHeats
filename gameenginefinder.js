@@ -25,6 +25,7 @@
         LayaAir: ["Laya"],
         Egret: ["egret"],
         ImpactJS: ["ig"]
+        MatterJS: ["Matter"],
     };
 
     for (const [engine, globals] of Object.entries(engines)) {
@@ -57,6 +58,7 @@
         Godot: /godot/,
         Construct: /construct|c3runtime/,
         GDevelop: /gdjs/
+        MatterJS: /matter\.js|matter-min|matter\.min/,
     };
 
     for (const [engine, pattern] of Object.entries(signatures)) {
