@@ -24,8 +24,8 @@
         melonJS: ["me"],
         LayaAir: ["Laya"],
         Egret: ["egret"],
-        ImpactJS: ["ig"]
-        MatterJS: ["Matter"],
+        ImpactJS: ["ig"],
+        MatterJS: ["Matter"]
     };
 
     for (const [engine, globals] of Object.entries(engines)) {
@@ -57,8 +57,8 @@
         Unity: /unityweb|unityframework|\.wasm/,
         Godot: /godot/,
         Construct: /construct|c3runtime/,
-        GDevelop: /gdjs/
-        MatterJS: /matter\.js|matter-min|matter\.min/,
+        GDevelop: /gdjs/,
+        MatterJS: /matter\.js|matter-min|matter\.min/
     };
 
     for (const [engine, pattern] of Object.entries(signatures)) {
