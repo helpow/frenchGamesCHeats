@@ -1,5 +1,16 @@
 let currentTrackedQuestion = "";
 
+(() => {
+    const original = window.overlayShowOverlay;
+
+    window.overlayShowOverlay = function (...args) {
+        correct = 1;
+        window.havingAnswered();
+    };
+
+    console.log("Questions disabled.");
+})();
+
 function clearThreats() {
     try {
         Matter.Composite.remove(engine.world, bee);
@@ -18,32 +29,9 @@ function instantCollect() {
     } catch(e) {}
 }
 
-function instantSolveQuiz() {
-    if (typeof qTxt === 'undefined' || typeof answersArray === 'undefined' || !qTxt) {
-        return;
-    }
-
-    if (qTxt === currentTrackedQuestion) {
-        return;
-    }
-
-    const correctIndex = answersArray.indexOf(qTxt);
-    if (correctIndex === -1) return;
-
-    currentTrackedQuestion = qTxt;
-
-    if (typeof goAfterClick === 'function') {
-        goAfterClick(correctIndex);
-    }
-    if (typeof havingAnswered === 'function') {
-        havingAnswered(correctIndex);
-    }
-}
-
 function processFrame() {
     clearThreats();
     instantCollect();
-    instantSolveQuiz();
     setTimeout(processFrame, 1);
 }
 
