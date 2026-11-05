@@ -225,44 +225,76 @@
   const write = (key,value) => active().set(key,value);
   const call = (key,...args) => active().call(key,...args);
 
-  function inspect(value = root,{depth=1,includeSymbols=true} = {}) {
+  function inspect(value = root, {depth = 1, includeSymbols = true} = {}) {
     if (typeof value === "string") value = resolve(value);
-    if (!objectLike(value)) return {type:typeof value,value};
+
+    if (!objectLike(value)) {
+        return {type: typeof value, value};
+    }
 
     const seen = new WeakSet();
 
-    function walk(obj,level) {
-      if (!objectLike(obj)) return obj;
-      if (seen.has(obj)) return "[Circular]";
-      seen.add(obj);
+    function walk(obj, level) {
+        if (!objectLike(obj)) return obj;
+        if (seen.has(obj)) return "[Circular]";
+        seen.add(obj);
 
-      const keys = includeSymbols ? Reflect.ownKeys(obj) : Object.getOwnPropertyNames(obj);
+        let keys;
 
-      return {
-        type:typeof obj,
-        constructor:obj.constructor?.name || null,
-        properties:keys.map(key => {
-          const d = Object.getOwnPropertyDescriptor(obj,key);
-          const accessor = !!(d.get || d.set);
-          const item = {
-            key:typeof key === "symbol" ? key.toString() : key,
-            type:accessor ? "accessor" : typeof d.value,
-            enumerable:d.enumerable,
-            configurable:d.configurable,
-            writable:d.writable
-          };
+        try {
+            keys = includeSymbols
+                ? Reflect.ownKeys(obj)
+                : Object.getOwnPropertyNames(obj);
+        } catch (error) {
+            return {
+                type: "inaccessible",
+                error: error.name
+            };
+        }
 
-          if (accessor) {
-            item.getter = !!d.get;
-            item.setter = !!d.set;
-          } else if (level < depth && objectLike(d.value)) {
-            item.value = walk(d.value,level+1);
-          } else if (!accessor) item.value = d.value;
+        const properties = keys.map(key => {
+            try {
+                const d = Object.getOwnPropertyDescriptor(obj, key);
 
-          return item;
-        })
-      };
+                if (!d) return {key: String(key), type: "unavailable"};
+
+                const accessor = !!(d.get || d.set);
+
+                const item = {
+                    key: typeof key === "symbol" ? key.toString() : key,
+                    type: accessor ? "accessor" : typeof d.value,
+                    enumerable: d.enumerable,
+                    configurable: d.configurable,
+                    writable: d.writable
+                };
+
+                if (accessor) {
+                    item.getter = !!d.get;
+                    item.setter = !!d.set;
+                } else if (level < depth && objectLike(d.value)) {
+                    item.value = walk(d.value, level + 1);
+                } else if (!accessor) {
+                    item.value = d.value;
+                }
+
+                return item;
+            } catch (error) {
+                return {
+                    key: String(key),
+                    type: "inaccessible",
+                    error: error.name
+                };
+            }
+        });
+
+        return {
+            type: typeof obj,
+            properties
+        };
     }
+
+    return walk(value, 0);
+}
 
     return walk(value,0);
   }
